@@ -1,12 +1,12 @@
 import random
 from aiogram import Bot, Dispatcher, F
-from aiogram.filters import  Command,CommandStart
+from aiogram.filters import Command, CommandStart
 from aiogram.types import Message
 
 BOT_TOKEN =
 
-bot =Bot(BOT_TOKEN)
-dp = Dispatcher
+bot = Bot(BOT_TOKEN)
+dp = Dispatcher()
 #КОЛЛИЧЕСТВО ДОСТУПНЫХ ПОПЫТОК
 ATTEMPTS = 5
 
@@ -21,6 +21,8 @@ user = {'in_game': False,
 def get_random_number() -> int:
     return random.randint(1, 100)
 
+
+
 #Хендлер для команды start
 @dp.message(CommandStart())
 async def process_start_command(message: Message):
@@ -31,15 +33,23 @@ async def process_start_command(message: Message):
     )
 
 # Этот хендлер ьудет срабутывать на команду '/help'
-@dp.message(CommandStart(commands='help'))
+@dp.message(Command(commands='help'))
 async def process_help_command(message: Message):
     await message.answer(
         f'Всего игр сыграно: {user["total_games"]}/n'
         f'игр выиграно: {user["wins"]}'
     )
+# Этот хэндлер будет срабатывать на команду "/stat"
+@dp.message(Command(commands='stat'))
+async def process_stat_command(message: Message):
+    await message.answer(
+        f'Всего игр сыграно: {user["total_games"]}\n'
+        f'Игр выиграно: {user["wins"]}'
+    )
+
 
 #Хендлер под команду '/canсel'
-@dp.message(Command(command='cancel'))
+@dp.message(Command(commands='cancel'))
 async def process_cancel_command(message: Message):
     if user['in_game']:
         user['in_game'] = False
@@ -87,6 +97,7 @@ async def process_negative_answer(message: Message):
 
 
 # Хендлер для обработки принятых чисел
+
 @dp.message(lambda x: x.text and x.text.isdigit() and 1 <= int(x.text) <= 100)
 async def process_numbers_answer(message: Message):
     if user['in_game']:
@@ -118,6 +129,22 @@ async def process_numbers_answer(message: Message):
         await message.answer('Мы еще не играем. Хотите сыграть?')
 
 
+# Этот хендлер будет срабатывать на остальные любые сообщения
+dp.message()
+async def process_other_answers(message: Message):
+    if user['in_game']:
+        await message.answer(
+            'Мы же сейчас с вами играем. '
+            'Присылайте, подалуйста, числа от1 до 100'
+        )
+    else:
+        await message.answer(
+            'Я довольно ограниченный бот, давайте '
+            'просто сыграем в игру?'
+        )
+
+if __name__ == '__main__':
+    dp.run_polling(bot)
 
 
 
